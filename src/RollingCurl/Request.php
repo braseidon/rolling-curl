@@ -1,4 +1,4 @@
-<?php
+<?php namespace Braseidon\RollingCurl;
 
 /**
  * A cURL library to fetch a large number of resources while only using
@@ -12,8 +12,6 @@
  * @license Apache License 2.0
  * @link https://github.com/chuyskywalker/rolling-curl
  */
-
-namespace RollingCurl;
 
 /**
  * Class that represent a single curl request
@@ -66,7 +64,7 @@ class Request
      * @param string $method
      * @return \RollingCurl\Request
      */
-    function __construct($url, $method="GET")
+    public function __construct($url, $method = "GET")
     {
         $this->setUrl($url);
         $this->setMethod($method);
@@ -271,7 +269,4 @@ class Request
     {
         return $this->url;
     }
-
-
-
 }

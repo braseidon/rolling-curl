@@ -1,4 +1,4 @@
-<?php
+<?php namespace Braseidon\RollingCurl;
 
 /**
  * A cURL library to fetch a large number of resources while maintaining
@@ -13,10 +13,7 @@
  * @link https://github.com/chuyskywalker/rolling-curl
  */
 
-namespace RollingCurl;
-
-use RollingCurl\Request;
-
+use Braseidon\RollingCurl\Request;
 
 /**
  * Class that holds a rolling queue of curl requests.
@@ -105,6 +102,12 @@ class RollingCurl
      */
     private $completedRequestCount = 0;
 
+    /**
+     * Keeps track of whether a cURL request is running
+     *
+     * @var integer
+     */
+    protected $running = 0;
 
     /**
      * Add a request to the request queue
@@ -208,9 +211,8 @@ class RollingCurl
      */
     public function execute()
     {
-
         $master = curl_multi_init();
-        foreach ($this->multicurlOptions AS $multiOption => $multiValue) {
+        foreach ($this->multicurlOptions as $multiOption => $multiValue) {
             curl_multi_setopt($master, $multiOption, $multiValue);
         }
 
@@ -231,19 +233,15 @@ class RollingCurl
             $this->activeRequests[(int) $ch] = $request;
         }
 
-        $active = null;
-
         // Use a shorter select timeout when there is something to do between calls
         $idleCallback = $this->idleCallback;
         $selectTimeout = $idleCallback ? 0.1 : 1.0;
 
         do {
-
             // ensure we're running
-            $status = curl_multi_exec($master, $active);
+            $status = curl_multi_exec($master, $this->running);
             // see if there is anything to read
             while ($transfer = curl_multi_info_read($master)) {
-
                 // get the request object back and put the curl response into it
                 $key     = (int) $transfer['handle'];
                 $request = $this->activeRequests[$key];
@@ -279,8 +277,7 @@ class RollingCurl
                 }
 
                 // if something was requeued, this will get it running/update our loop check values
-                $status = curl_multi_exec($master, $active);
-
+                $status = curl_multi_exec($master, $this->running);
             }
 
             // Error detection -- this is very, very rare
@@ -304,15 +301,14 @@ class RollingCurl
             }
 
             // Block until *something* happens to avoid burning CPU cycles for naught
-            while(0 == curl_multi_select($master, $selectTimeout) && $idleCallback) {
+            while (0 == curl_multi_select($master, $selectTimeout) && $idleCallback) {
                 $idleCallback($this);
             }
 
             // see if we're done yet or not
-        } while ($status === CURLM_CALL_MULTI_PERFORM || $active);
+        } while ($status === CURLM_CALL_MULTI_PERFORM || $this->running);
 
         curl_multi_close($master);
-
     }
 
 
@@ -358,8 +354,8 @@ class RollingCurl
     }
 
     /**
-     * Define a callable to handle the response. 
-     * 
+     * Define a callable to handle the response.
+     *
      * It can be an anonymous function:
      *
      *     $rc = new RollingCurl();
@@ -378,7 +374,7 @@ class RollingCurl
      *         // Cannot be private or protected
      *         public function callback($request, $rolling_curl) {
      *             // process
-     *         } 
+     *         }
      *     }
      *
      * The called code should expect two parameters: \RollingCurl\Request $request, \RollingCurl\RollingCurl $rollingCurl
@@ -572,7 +568,8 @@ class RollingCurl
     private function getNextPendingRequests($limit = 1)
     {
         $requests = array();
-        while ($limit--) {
+        $countPending = $limit <= 0 ? $this->countPending() : $limit;
+        while ($countPending--) {
             if (!isset($this->pendingRequests[$this->pendingRequestsPosition])) {
                 break;
             }
@@ -614,7 +611,7 @@ class RollingCurl
      * @param bool $useArray count the completedRequests array is true. Otherwise use the global counter.
      * @return int
      */
-    public function countCompleted($useArray=false)
+    public function countCompleted($useArray = false)
     {
         return $useArray ? count($this->completedRequests) : $this->completedRequestCount;
     }
@@ -650,5 +647,4 @@ class RollingCurl
         gc_collect_cycles();
         return $this;
     }
-
 }
