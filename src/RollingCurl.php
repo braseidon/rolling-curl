@@ -203,6 +203,28 @@ class RollingCurl
     }
 
     /**
+     * Sets the path and name of the file to save to / retrieve cookies from
+     *
+     * @param  string  $path
+     * @param  boolean $keep
+     * @return void
+     */
+    public function cookies($path, $keep = false)
+    {
+        if (!is_file($path)) {
+            if (!($handle = fopen($path, 'a'))) {
+                throw new \Exception('File "' . $path . '" for storing cookies could not be found nor could it automatically be created! Make sure either that the path to the file points to a writable directory, or create the file yourself and make it writable');
+            }
+            fclose($handle);
+        }
+
+        $this->addOptions([
+            CURLOPT_COOKIEJAR   =>  $path,
+            CURLOPT_COOKIEFILE  =>  $path,
+        ]);
+    }
+
+    /**
      * Run all queued requests
      *
      * @return void
@@ -385,7 +407,7 @@ class RollingCurl
      */
     public function setCallback($callback)
     {
-        if (!is_callable($callback)) {
+        if (! is_callable($callback)) {
             throw new \InvalidArgumentException("must pass in a callable instance");
         }
         $this->callback = $callback;
@@ -428,7 +450,7 @@ class RollingCurl
      */
     public function setHeaders($headers)
     {
-        if (!is_array($headers)) {
+        if (! is_array($headers)) {
             throw new \InvalidArgumentException("headers must be an array");
         }
         $this->headers = $headers;
@@ -450,7 +472,7 @@ class RollingCurl
      */
     public function setOptions($options)
     {
-        if (!is_array($options)) {
+        if (! is_array($options)) {
             throw new \InvalidArgumentException("options must be an array");
         }
         $this->options = $options;
@@ -466,7 +488,7 @@ class RollingCurl
      */
     public function addOptions($options)
     {
-        if (!is_array($options)) {
+        if (! is_array($options)) {
             throw new \InvalidArgumentException("options must be an array");
         }
         $this->options = $options + $this->options;
@@ -488,7 +510,7 @@ class RollingCurl
      */
     public function setMulticurlOptions($multicurlOptions)
     {
-        if (!is_array($multicurlOptions)) {
+        if (! is_array($multicurlOptions)) {
             throw new \InvalidArgumentException("multicurlOptions must be an array");
         }
         $this->multicurlOptions = $multicurlOptions;
@@ -504,7 +526,7 @@ class RollingCurl
      */
     public function addMulticurlOptions($multicurlOptions)
     {
-        if (!is_array($multicurlOptions)) {
+        if (! is_array($multicurlOptions)) {
             throw new \InvalidArgumentException("multicurlOptions must be an array");
         }
         $this->multicurlOptions = $multicurlOptions + $this->multicurlOptions;
@@ -532,7 +554,7 @@ class RollingCurl
      */
     public function setSimultaneousLimit($count)
     {
-        if (!is_int($count) || $count < 2) {
+        if (! is_int($count) || $count < 2) {
             throw new \InvalidArgumentException("setSimultaneousLimit count must be an int >= 2");
         }
         $this->simultaneousLimit = $count;
@@ -568,7 +590,7 @@ class RollingCurl
         $requests = array();
         $countPending = $limit <= 0 ? $this->countPending() : $limit;
         while ($countPending--) {
-            if (!isset($this->pendingRequests[$this->pendingRequestsPosition])) {
+            if (! isset($this->pendingRequests[$this->pendingRequestsPosition])) {
                 break;
             }
             $requests[] = $this->pendingRequests[$this->pendingRequestsPosition];
