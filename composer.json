@@ -3,7 +3,7 @@
     "description": "Rolling-Curl: A non-blocking, non-dos multi-curl library for PHP",
     "type": "library",
     "keywords": ["multi", "curl", "parallel", "requests", "asynchronous", "http"],
-    "homepage": "https://github.com/chuyskywalker/rolling-curl",
+    "homepage": "https://github.com/braseidon/rolling-curl",
     "authors": [
         {
             "name": "Jeff Minard",
