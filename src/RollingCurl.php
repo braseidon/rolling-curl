@@ -13,8 +13,6 @@
  * @link https://github.com/chuyskywalker/rolling-curl
  */
 
-use Braseidon\RollingCurl\Request;
-
 /**
  * Class that holds a rolling queue of curl requests.
  */
